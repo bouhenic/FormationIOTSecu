@@ -1,0 +1,48 @@
+Vagrant.configure("2") do |config|
+  # Image de base pour les deux machines
+  config.vm.box = "debian/bookworm64"
+
+  # --- CONFIGURATION COMMUNE (Provisioning) ---
+  config.vm.provision "shell", inline: <<-SHELL
+    export DEBIAN_FRONTEND=noninteractive
+    sudo apt-get update
+    # Installation des outils demandés
+    sudo apt-get install -y mosquitto mosquitto-clients openssl
+    # Clavier en français (console)
+    localectl set-keymap fr
+    echo 'KEYMAP=fr' > /etc/vconsole.conf
+  SHELL
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # --- MACHINE 1 : LE BROKER ---
+  config.vm.define "mosquitto-broker" do |broker|
+    broker.vm.hostname = "mosquitto-broker"
+    broker.vm.network "private_network", ip: "192.168.100.10"
+
+    broker.vm.provider :libvirt do |v|
+      v.memory = 2048
+      v.cpus = 2
+      v.storage_pool_name = "images"
+    end
+
+    # Configuration spécifique pour autoriser les connexions distantes sur Mosquitto
+    broker.vm.provision "shell", inline: <<-SHELL
+      echo "listener 1883 0.0.0.0" > /etc/mosquitto/conf.d/external.conf
+      echo "allow_anonymous true" >> /etc/mosquitto/conf.d/external.conf
+      systemctl restart mosquitto
+    SHELL
+  end
+
+  # --- MACHINE 2 : LE CLIENT ---
+  config.vm.define "mosquitto-client" do |client|
+    client.vm.hostname = "mosquitto-client"
+    client.vm.network "private_network", ip: "192.168.100.11"
+
+    client.vm.provider :libvirt do |v|
+      v.memory = 2048
+      v.cpus = 2
+      v.storage_pool_name = "images"
+    end
+  end
+end
