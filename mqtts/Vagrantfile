@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
     broker.vm.provider :libvirt do |v|
       v.memory = 2048
       v.cpus = 2
-      v.storage_pool_name = "images"
+      v.storage_pool_name = "default"
     end
 
     # Configuration spécifique pour autoriser les connexions distantes sur Mosquitto
@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
     client.vm.provider :libvirt do |v|
       v.memory = 2048
       v.cpus = 2
-      v.storage_pool_name = "images"
+      v.storage_pool_name = "default"
     end
   end
 end
