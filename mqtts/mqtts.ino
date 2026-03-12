@@ -50,6 +50,13 @@ PubSubClient client(wifiClient);
 
 void connectToWiFi() {
   Serial.println("Connexion au WiFi...");
+
+  // LIGNES AJOUTÉES POUR STABILISER LE WIFI
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true, true);
+  delay(1000);
+  WiFi.setSleep(false);
+  
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
